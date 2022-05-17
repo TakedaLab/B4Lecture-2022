@@ -108,8 +108,8 @@ if __name__ == "__main__":
     original_spec = STFT(original_signal,window,step)
 
 
-    filter =HPF(3000,sr=sr,fir_size = 256)
-    filter_property = np.fft.fft(filter) #ここの引数srの有無でいろいろ変わるっぽい？
+    filter =HPF(3000,sr=sr,fir_size = 512)
+    filter_property = np.fft.fft(filter,sr) #ここの引数srの有無でいろいろ変わるっぽい？
     filtered_signal = convolution(original_signal,filter) #時間領域
     filtered_spec = STFT(filtered_signal,window,step) #周波数領域に変換
 
