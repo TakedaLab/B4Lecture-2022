@@ -93,7 +93,7 @@ def main():
         # Cumulative sum of contribution rate
         con_rate_sum = np.cumsum(c_rate)
         # point where the rate >0.9
-        point = np.min(np.where(con_rate_sum >= 0.9))
+        point = np.min(np.where(con_rate_sum >= 0.9))+1
 
         plt.figure()
         plt.title('cumulative contribution rate')
@@ -101,8 +101,8 @@ def main():
         plt.ylabel('cumulative contribution rate')
         x = np.arange(1, len(con_rate_sum)+1)
         plt.plot(x, con_rate_sum, color='m')
-        plt.axhline(con_rate_sum[point], color='r', linestyle='--',
-                    label=f'({point}, {con_rate_sum[point]:0.3f})')
+        plt.axhline(con_rate_sum[point-1], color='r', linestyle='--',
+                    label=f'({point}, {con_rate_sum[point-1]:0.3f})')
         plt.axvline(point, color='r', linestyle='--')
         plt.xlim([0, 100])
         plt.ylim([min(con_rate_sum), max(con_rate_sum)])
