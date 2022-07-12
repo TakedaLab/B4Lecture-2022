@@ -16,6 +16,8 @@ import glob
 import matplotlib.pyplot as plt
 import time
 import os
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 
 
 def cnn(input_shape, output_dim):
@@ -60,31 +62,11 @@ def feature_extract(path_list, l):
         load_data = [np.pad(data, [0, l - len(data)], 'constant') for data in load_data]
     else:
         load_data = [np.pad(data, [0, lenmax - len(data)], 'constant') for data in load_data]
-    print(np.array(load_data).shape)
     mfcc = np.array([librosa.feature.mfcc(y=data, sr=sr, n_mfcc=13) for data in load_data])
     delta = np.array([librosa.feature.delta(x) for x in mfcc])
     feature = np.append(mfcc, delta, axis=1)
 
     return lenmax, feature
-
-
-def plot_confusion_matrix(predict, ground_truth, title=None, cmap=plt.cm.get_cmap("Blues")):
-    """
-    予測結果の混合行列をプロット
-    Args:
-        predict: 予測結果
-        ground_truth: 正解ラベル
-        title: グラフタイトル
-        cmap: 混合行列の色
-    """
-    cm = confusion_matrix(predict, ground_truth)
-    plt.figure()
-    plt.imshow(cm, interpolation="nearest", cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
-    plt.set(xlabel="Ground Truth", ylabel="Predicted")
-    plt.savefig("cm.png")
-    plt.show()
 
 
 def write_result(paths, outputs):
@@ -101,6 +83,51 @@ def write_result(paths, outputs):
             f.write("{path},{output}\n".format(path=path, output=output))
 
 
+def plt_history(history, EPOCH):
+        # 学習過程の可視化
+    plt.plot(range(1, EPOCH+1), history.history['accuracy'], label="training")
+    plt.plot(range(1, EPOCH+1), history.history['val_accuracy'], label="validation")
+    plt.xlabel("epochs")
+    plt.ylabel("accuracy")
+    plt.legend()
+    plt.savefig("figs/" + "process_accuracy.png")
+    plt.close()
+
+    plt.plot(range(1, EPOCH+1), history.history['loss'], label="training")
+    plt.plot(range(1, EPOCH+1), history.history['val_loss'], label="validation")
+    plt.xlabel("epochs")
+    plt.ylabel("loss")
+    plt.legend()
+    plt.savefig("figs/" + "process_loss.png")
+    plt.close()
+
+
+def test_cm(l_train):
+    test = pd.read_csv("test_truth.csv")
+    _, X_test = feature_extract(test["path"].values, l_train)
+    Y_test = np.array(test["label"].values)
+
+    X_test = X_test[:, :, :, np.newaxis]
+
+    predict = model.predict(X_test)
+    predict = np.argmax(predict, axis=1)
+
+    cm = confusion_matrix(predict, Y_test)
+    acc = np.sum(predict == Y_test) / predict.shape[0] * 100
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    sns.heatmap(cm, cmap="Blues", annot=True, cbar=False, square=True)
+    ax.set(
+        xlabel="Ground Truth", ylabel="Predicted", title=f"Result\n(Acc:{acc}%\n"
+    )
+
+    plt.tight_layout()
+    plt.savefig("figs/" +"cm.png")
+    plt.show()
+    plt.close()
+    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--path_to_truth", type=str, help='テストデータの正解ファイルCSVのパス')
@@ -113,7 +140,6 @@ if __name__ == "__main__":
     
     l_train, X_train = feature_extract(train["path"], 0)
     _, X_test = feature_extract(test["path"], l_train)
-
     Y_train = np_utils.to_categorical(train["label"], num_classes=10)
 
     X_train, X_validation, Y_train, Y_validation = train_test_split(
@@ -124,32 +150,29 @@ if __name__ == "__main__":
     
     X_train = X_train[:, :, :, np.newaxis]
     X_validation = X_validation[:, :, :, np.newaxis]
-    X_test = X_test[:, :, :, np.newaxis]
-
-    print(X_train.shape)
-    print(X_test.shape)
     
     if args.use_trained_model:
         model = load_model(args.use_trained_model)
         model.summary()
-
+        
     else:
+        EPOCH = 30
         model = cnn(X_train.shape, output_dim=10)
         model.compile(loss="categorical_crossentropy",
                         optimizer=Adam(lr=1e-4),
                         metrics=["accuracy"])
         
-        model.fit(X_train, 
-                Y_train,
-                batch_size=32, 
-                epochs=30,
-                verbose=1)
+        result = model.fit(X_train, 
+                    Y_train,
+                    batch_size=32, 
+                    epochs=EPOCH,
+                    verbose=1,
+                    validation_data=(X_validation, Y_validation))
         model.save("leras_model/my_model_5.h5")
+
+        plt_history(result, EPOCH)
 
         score = model.evaluate(X_validation, Y_validation, verbose=0)
         print("Validation accuracy:", np.round(score[1], decimals=5))
 
-    predict = model.predict(X_test)
-    predicted_values = np.argmax(predict, axis=1)
-    
-    write_result(test["path"].values, predicted_values)
+    test_cm(l_train)
