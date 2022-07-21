@@ -1,11 +1,11 @@
 # Pytorch Lightning版 ベースライン
 
-以下`pwd = ex9/pytorch_lightning/` を前提とする
+以下 `pwd = ex9/pytorch_lightning/` を前提とする
 
 ## 準備
 適当な仮想環境のもとで以下のコマンドを実行
 ```sh
-pip install requirement.txt
+pip install -r requirement.txt
 ```
 
 
