@@ -82,7 +82,6 @@ class my_MLP(pl.LightningModule):
         x, y = batch
         pred = self.forward(x)
         loss = self.loss_fn(pred, y)
-        self.log('val/loss', loss, prog_bar=False, logger=True)
         self.log('val/acc', self.val_acc(pred,y), prog_bar=True, logger=True)
         return loss
     
