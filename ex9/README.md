@@ -26,7 +26,7 @@
 ## 課題管理者の準備 (B4のみなさんはスキップしてください)
 
 ```sh
-./setup.sh
+./setup.sh admin
 python make_label.py --seed {秘密のシード}
 ```
 
@@ -55,7 +55,9 @@ python make_label.py --seed {秘密のシード}
    - テストデータに対する最終的な結果を事前に配布するので、それを使って5回推論を行い、正解率の平均値を計算してください
    - 平均値の計算だけでなく、信頼区間をプロットするなどの工夫をするとより良いです
 
-- ベースラインの実行
+
+## ベースラインの実行
+### keras / tensorflowの場合
 
   - kerasのバックエンドをtensorflowに変更
 
@@ -91,25 +93,43 @@ python make_label.py --seed {秘密のシード}
 
   - ベースラインの実行
 
+
     ```sh
     $ python baseline.py
     ```
 
     乱数によってうまく学習できないことがあるので何度か試してみてください
 
+### pytorch_lightningの場合
+- ディレクトリ移動
 
+    ```sh
+    $ cd pytorch_lightning/
+    ```
 
-  **注意**
+- 適当な仮想環境下で必要モジュールを準備
+    ```sh
+    $ pip install -r requirement.txt
+    ```
 
-  ​	インストールされるtensorflowはcpu版です．
+- ベースラインの実行
+    ```sh
+    $ python baseline.py
+    ```
 
-  ​	gpuを使いたい場合はcpu版を一度アンインストールし，
+- 詳しくは `pytorch_lightning/README.md` を参照
 
-  ​	gpu版をインストールするのを推奨します．
+**注意**
 
-  ​	またサーバでgpuを使うときはslurmでジョブを管理するなど注意が必要です．
+​	インストールされるtensorflowはcpu版です．
 
-  ​	詳しくは[サーバマニュアル](https://github.com/TakedaLab/ServerManual#slurm%E3%81%AE%E7%89%B9%E5%BE%B4)を参照するか先輩に聞いてください．
+​	gpuを使いたい場合はcpu版を一度アンインストールし，
+
+​	gpu版をインストールするのを推奨します．
+
+​	またサーバでgpuを使うときはslurmでジョブを管理するなど注意が必要です．
+
+​	詳しくは[サーバマニュアル](https://github.com/TakedaLab/ServerManual#slurm%E3%81%AE%E7%89%B9%E5%BE%B4)を参照するか先輩に聞いてください．
 
 
 
@@ -129,6 +149,7 @@ python make_label.py --seed {秘密のシード}
 - データ数が少ない
   - 外部データの利用は禁止
   - データをいじって疑似的に学習データを増やすのはOK
+- baseline.pyを参考にしつつ自分だけの最強認識モデルを作成しよう！
 
 
 

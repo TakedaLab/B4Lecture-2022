@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if  [ ! -e free-spoken-digit-dataset ];then
+if  [ "$1" = "admin"  ];then
     # データセットのダウンロード
     git clone https://github.com/Jakobovski/free-spoken-digit-dataset.git
 fi
